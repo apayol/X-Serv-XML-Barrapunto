@@ -11,9 +11,14 @@
 # Just prints the news (and urls) in BarraPunto.com,
 #  after reading the corresponding RSS channel.
 
+# HOW TO EXECUTE: 
+# python3 xml-parser-barrapunto.py >barrapunto.html
+# Next open barrapunto.html file in your navigator")
+
 from xml.sax.handler import ContentHandler
 from xml.sax import make_parser
 import sys
+from urllib.request import urlopen
 
 class myContentHandler(ContentHandler):
 
@@ -36,13 +41,14 @@ class myContentHandler(ContentHandler):
             self.inItem = False
         elif self.inItem:
             if name == 'title':
-                line = "Title: " + self.theContent + "."
+                line = "Title: " + self.theContent + ".<br/>"
                 # To avoid Unicode trouble
-                print (line.encode('utf-8'))
+                print (line)
                 self.inContent = False
                 self.theContent = ""
             elif name == 'link':
-                print (" Link: " + self.theContent + ".")
+                print (" Link: " + "<a href=" + self.theContent)
+                print (">" + self.theContent + "</a><br/><br/>")
                 self.inContent = False
                 self.theContent = ""
 
@@ -52,9 +58,9 @@ class myContentHandler(ContentHandler):
             
 # --- Main prog
 
-if len(sys.argv)<2:
-    print ("Usage: python xml-parser-barrapunto.py <document>")
-    print (" <document>: file name of the document to parse")
+if len(sys.argv)!=1:
+    print ("Usage: python3 xml-parser-barrapunto.py >barrapunto.html")
+    print ("Next: open barrapunto.html file in your navigator")
     sys.exit(1)
     
 # Load parser and driver
@@ -64,8 +70,14 @@ theHandler = myContentHandler()
 theParser.setContentHandler(theHandler)
 
 # Ready, set, go!
+print ("<h1>Titulares y links de barrapunto.com</h1>")
+url = "http://barrapunto.com/index.rss"
+rss = urlopen(url)
+html = rss.read().decode("utf-8")  
+rss.close()
+txt = open('barrapunto.txt', 'w') # Lo introduzco en un txt
+txt.write(html)
+txt.close()
 
-xmlFile = open(sys.argv[1],"r")
+xmlFile = open('barrapunto.txt', "r")
 theParser.parse(xmlFile)
-
-print ("Parse complete")
